@@ -1,46 +1,42 @@
 version: "3.6"
 
 services:
-  web:
-    image: nginx:latest
-    restart: unless-stopped
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./backend:/var/www
     ports:
       - "80:80"
-      - "443:443"
-    volumes:
-      - ./web:/var/www/
-      - ./docker/nginx/:/etc/nginx/conf.d/
-    links:
-      - phpfpm
-  phpfpm:
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
+  backend:
     restart: unless-stopped
     build:
       context: .
       dockerfile: docker/php/Dockerfile
     volumes:
-      - ./web:/var/www
-      - ./docker/php.ini:/usr/local/etc/php/php.ini
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    restart: unless-stopped
+      - ./backend:/var/www
+    networks:
+      - app-network
     ports:
-      - "8036:80"
-    environment:
-      UPLOAD_LIMIT: 500M
-    depends_on:
-      - db
+      - "9000:9000"
 
-  db:
-    image: mariadb:10.3-bionic #postgres:9.6-alpube
-    restart: unless-stopped
-    environment:
-      - MYSQL_DATABASE=selleriti_m #- POSTGRES_DB=api
-      - MYSQL_USER=admin  #- POSTGRES_USER=api-platform
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_PASSWORD=admin #- POSTGRES_PASSWORD=!ChangeMe!
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
     volumes:
-      - ./db/data:/var/lib/mysql/:rw
-      - ./docker/my.cnf:/etc/mysql/my.cnf
+      - ./frontend:/app
     ports:
-      - "3306:3306"
+      - "8081:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
