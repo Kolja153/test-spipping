@@ -1,0 +1,46 @@
+version: "3.6"
+
+services:
+  web:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./web:/var/www/
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    links:
+      - phpfpm
+  phpfpm:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    volumes:
+      - ./web:/var/www
+      - ./docker/php.ini:/usr/local/etc/php/php.ini
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8036:80"
+    environment:
+      UPLOAD_LIMIT: 500M
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.3-bionic #postgres:9.6-alpube
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=selleriti_m #- POSTGRES_DB=api
+      - MYSQL_USER=admin  #- POSTGRES_USER=api-platform
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=admin #- POSTGRES_PASSWORD=!ChangeMe!
+    volumes:
+      - ./db/data:/var/lib/mysql/:rw
+      - ./docker/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - "3306:3306"
