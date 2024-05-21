@@ -21,6 +21,10 @@ class ShippingController extends AbstractController
 
         $carrier = CarrierFactory::createCarrier($carrierSlug);
 
+        if (!$carrier) {
+            return $this->json('Carrier could not be found.', Response::HTTP_BAD_REQUEST);
+        }
+
         $calculator = new ShippingCalculator($carrier);
         $cost = $calculator->calculate($weight);
 

@@ -11,3 +11,9 @@
 8. Run: docker-compose restart
 
 Visit url  [http://localhost](http://localhost)
+
+# Test
+
+1. Rnun cp backend/phpunit.xml.dist backend/phpunit.xml
+2. Run: docker-compose exec backend bash 
+3. Run: php bin/phpunit

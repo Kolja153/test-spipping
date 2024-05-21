@@ -23,6 +23,8 @@ class CarrierFactory
             $class = self::CARRIERS[$slug];
             return new $class();
         }
+
+        return null;
     }
 
     public static function getCarriers(): array
